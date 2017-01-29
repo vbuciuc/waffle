@@ -148,12 +148,4 @@ public class SimpleHttpResponse extends Response {
         this.headers.put(headerName, current);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.apache.catalina.connector.Response#setStatus(int)
-     */
-    @Override
-    public void setStatus(final int value) {
-        this.status = value;
-    }
 }

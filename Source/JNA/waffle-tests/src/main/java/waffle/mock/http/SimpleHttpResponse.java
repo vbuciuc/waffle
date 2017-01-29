@@ -117,15 +117,6 @@ public class SimpleHttpResponse extends HttpServletResponseWrapper {
         this.headers.put(headerName, current);
     }
 
-    /*
-     * (non-Javadoc)
-     * @see javax.servlet.http.HttpServletResponseWrapper#setStatus(int)
-     */
-    @Override
-    public void setStatus(final int value) {
-        this.status = value;
-    }
-
     /**
      * Gets the status string.
      *
@@ -237,8 +228,4 @@ public class SimpleHttpResponse extends HttpServletResponseWrapper {
         return null;
     }
 
-    @Override
-    public void setContentLength(int len) {
-        setHeader("Content-Length", Integer.toString(len));
-    }
 }

@@ -165,7 +165,17 @@ public class NegotiateAuthenticationFilter extends AuthenticatingFilter {
             // negotiate is processing
             final String protocol = this.getAuthzHeaderProtocol(request);
             NegotiateAuthenticationFilter.LOGGER.debug("Negotiation in progress for protocol: {}", protocol);
-            this.sendChallengeDuringNegotiate(protocol, response, ((NegotiateToken) token).getOut());
+            try {
+                this.sendChallengeDuringNegotiate(protocol, response, ((NegotiateToken) token).getOut());
+            } catch (IOException e1) {
+                NegotiateAuthenticationFilter.LOGGER.warn("login exception: {}", e1.getMessage());
+
+                // do not send token.out bytes, this was a login failure.
+                this.sendChallengeOnFailure(response);
+
+                this.setFailureAttribute(request, e);
+                return true;
+            }
             return false;
         }
         NegotiateAuthenticationFilter.LOGGER.warn("login exception: {}", e.getMessage());
@@ -237,7 +247,7 @@ public class NegotiateAuthenticationFilter extends AuthenticatingFilter {
      * , and if it is not <code>null</code>, delegates to
      * {@link org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter#isLoginAttempt(String)
      * isLoginAttempt(authzHeaderValue)}. If the header is <code>null</code>, <code>false</code> is returned.
-     * 
+     *
      * @param request
      *            incoming ServletRequest
      * @return true if the incoming request is an attempt to log in based, false otherwise
@@ -255,7 +265,7 @@ public class NegotiateAuthenticationFilter extends AuthenticatingFilter {
      * <p/>
      * <code>HttpServletRequest httpRequest = {@link WebUtils#toHttp(javax.servlet.ServletRequest) toHttp(reaquest)};<br/>
      * return httpRequest.getHeader({@link org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter#AUTHORIZATION_HEADER AUTHORIZATION_HEADER});</code>
-     * 
+     *
      * @param request
      *            the incoming <code>ServletRequest</code>
      * @return the <code>Authorization</code> header's value.
@@ -281,7 +291,7 @@ public class NegotiateAuthenticationFilter extends AuthenticatingFilter {
      * Default implementation that returns <code>true</code> if the specified <code>authzHeader</code> starts with the
      * same (case-insensitive) characters specified by any of the configured protocols (Negotiate or NTLM),
      * <code>false</code> otherwise.
-     * 
+     *
      * @param authzHeader
      *            the 'Authorization' header value (guaranteed to be non-null if the
      *            {@link #isLoginAttempt(javax.servlet.ServletRequest)} method is not overriden).
@@ -300,20 +310,22 @@ public class NegotiateAuthenticationFilter extends AuthenticatingFilter {
      * Builds the challenge for authorization by setting a HTTP <code>401</code> (Unauthorized) status as well as the
      * response's {@link org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter#AUTHENTICATE_HEADER
      * AUTHENTICATE_HEADER}.
-     * 
+     *
      * @param protocols
      *            protocols for which to send a challenge. In initial cases, will be all supported protocols. In the
      *            midst of negotiation, will be only the protocol being negotiated.
-     * 
      * @param response
      *            outgoing ServletResponse
      * @param out
      *            token.out or null
+     * @throws IOException
+     *            Signals that an I/O exception has occurred.
      */
-    private void sendChallenge(final List<String> protocols, final ServletResponse response, final byte[] out) {
+    private void sendChallenge(final List<String> protocols, final ServletResponse response, final byte[] out)
+            throws IOException {
         final HttpServletResponse httpResponse = WebUtils.toHttp(response);
         this.sendAuthenticateHeader(protocols, out, httpResponse);
-        httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
     }
 
     /**
@@ -321,8 +333,10 @@ public class NegotiateAuthenticationFilter extends AuthenticatingFilter {
      *
      * @param response
      *            the response
+     * @throws IOException
+     *            Signals that an I/O exception has occurred.
      */
-    void sendChallengeInitiateNegotiate(final ServletResponse response) {
+    void sendChallengeInitiateNegotiate(final ServletResponse response) throws IOException {
         this.sendChallenge(NegotiateAuthenticationFilter.PROTOCOLS, response, null);
     }
 
@@ -335,8 +349,11 @@ public class NegotiateAuthenticationFilter extends AuthenticatingFilter {
      *            the response
      * @param out
      *            the out
+     * @throws IOException
+     *            Signals that an I/O exception has occurred.
      */
-    void sendChallengeDuringNegotiate(final String protocol, final ServletResponse response, final byte[] out) {
+    void sendChallengeDuringNegotiate(final String protocol, final ServletResponse response, final byte[] out)
+            throws IOException {
         final List<String> protocolsList = new ArrayList<>();
         protocolsList.add(protocol);
         this.sendChallenge(protocolsList, response, out);

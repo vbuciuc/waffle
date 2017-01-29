@@ -11,6 +11,7 @@
  */
 package waffle.shiro.negotiate;
 
+import java.io.IOException;
 import java.util.Base64;
 import java.util.HashMap;
 
@@ -61,9 +62,12 @@ public final class NegotiateAuthenticationFilterTest {
 
     /**
      * Test send challenge during negotiate.
+     *
+     * @throws IOException
+     *            Signals that an I/O exception has occurred.
      */
     @Test
-    public void testSendChallengeDuringNegotiate() {
+    public void testSendChallengeDuringNegotiate() throws IOException {
 
         final String myProtocol = "myProtocol";
 
@@ -77,17 +81,19 @@ public final class NegotiateAuthenticationFilterTest {
 
         Assert.assertEquals("keep-alive", this.response.headers.get("Connection"));
 
-        Assert.assertEquals(HttpServletResponse.SC_UNAUTHORIZED, this.response.sc);
-        Assert.assertEquals(0, this.response.errorCode);
+        Assert.assertEquals(HttpServletResponse.SC_UNAUTHORIZED, this.response.errorCode);
 
         Assert.assertFalse(this.response.isFlushed);
     }
 
     /**
      * Test send challenge initiate negotiate.
+     *
+     * @throws IOException
+     *            Signals that an I/O exception has occurred.
      */
     @Test
-    public void testSendChallengeInitiateNegotiate() {
+    public void testSendChallengeInitiateNegotiate() throws IOException {
 
         this.out = new byte[1];
         this.out[0] = -1;
@@ -99,8 +105,7 @@ public final class NegotiateAuthenticationFilterTest {
 
         Assert.assertEquals("keep-alive", this.response.headers.get("Connection"));
 
-        Assert.assertEquals(HttpServletResponse.SC_UNAUTHORIZED, this.response.sc);
-        Assert.assertEquals(0, this.response.errorCode);
+        Assert.assertEquals(HttpServletResponse.SC_UNAUTHORIZED, this.response.errorCode);
 
         Assert.assertFalse(this.response.isFlushed);
     }
@@ -118,7 +123,6 @@ public final class NegotiateAuthenticationFilterTest {
 
         Assert.assertEquals("close", this.response.headers.get("Connection"));
 
-        Assert.assertEquals(0, this.response.sc);
         Assert.assertEquals(HttpServletResponse.SC_UNAUTHORIZED, this.response.errorCode);
 
         Assert.assertTrue(this.response.isFlushed);

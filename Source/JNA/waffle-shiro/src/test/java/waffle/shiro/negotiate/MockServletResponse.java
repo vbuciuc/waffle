@@ -1,7 +1,7 @@
 /**
  * Waffle (https://github.com/Waffle/waffle)
  *
- * Copyright (c) 2010-2016 Application Security, Inc.
+ * Copyright (c) 2010-2017 Application Security, Inc.
  *
  * All rights reserved. This program and the accompanying materials are made available under the terms of the Eclipse
  * Public License v1.0 which accompanies this distribution, and is available at
@@ -79,15 +79,6 @@ public abstract class MockServletResponse implements HttpServletResponse {
     @Override
     public void setHeader(final String name, final String value) {
         this.headers.put(name, value);
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see javax.servlet.http.HttpServletResponse#setStatus(int)
-     */
-    @Override
-    public void setStatus(final int status) {
-        this.sc = status;
     }
 
 }
