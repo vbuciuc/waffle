@@ -110,4 +110,9 @@ public class MockWindowsIdentity implements IWindowsIdentity {
     public IWindowsImpersonationContext impersonate() {
         return new MockWindowsImpersonationContext();
     }
+
+    @Override
+    public IWindowsIdentity duplicate() {
+        return this;
+    }
 }

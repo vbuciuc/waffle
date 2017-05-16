@@ -1,7 +1,7 @@
 /**
  * Waffle (https://github.com/Waffle/waffle)
  *
- * Copyright (c) 2010-2016 Application Security, Inc.
+ * Copyright (c) 2010-2017 Application Security, Inc.
  *
  * All rights reserved. This program and the accompanying materials are made available under the terms of the Eclipse
  * Public License v1.0 which accompanies this distribution, and is available at
@@ -14,10 +14,14 @@ package waffle.windows.auth.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.jna.platform.win32.Advapi32;
 import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.Advapi32Util.Account;
 import com.sun.jna.platform.win32.Kernel32;
+import com.sun.jna.platform.win32.Win32Exception;
 import com.sun.jna.platform.win32.WinNT.HANDLE;
+import com.sun.jna.platform.win32.WinNT.HANDLEByReference;
+import com.sun.jna.platform.win32.WinNT.SECURITY_IMPERSONATION_LEVEL;
 import com.sun.jna.platform.win32.WinNT.WELL_KNOWN_SID_TYPE;
 
 import waffle.windows.auth.IWindowsAccount;
@@ -157,5 +161,17 @@ public class WindowsIdentityImpl implements IWindowsIdentity {
             }
         }
         return Advapi32Util.isWellKnownSid(this.getSid(), WELL_KNOWN_SID_TYPE.WinAnonymousSid);
+    }
+
+    @Override
+    public IWindowsIdentity duplicate() {
+        HANDLEByReference duplicateHandle = new HANDLEByReference();
+
+        if (!Advapi32.INSTANCE.DuplicateToken(this.windowsIdentity, SECURITY_IMPERSONATION_LEVEL.SecurityImpersonation,
+                duplicateHandle)) {
+            throw new Win32Exception(Kernel32.INSTANCE.GetLastError());
+        }
+
+        return new WindowsIdentityImpl(duplicateHandle.getValue());
     }
 }
